@@ -17,8 +17,9 @@ User Function xxSX3()
 
     Local aArea := GetArea()
     Local aCampos := {}
-    Local cAliasTp := "SX3TST"
+    Local cAliasTp := GetNextAlias() //"SX3TST"
     Local cFiltro := "X3_ARQUIVO == 'SB1'"
+    //Local cCampo := "((cAliasTp)->X3_CAMPO)"
 
 //PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
 
@@ -27,7 +28,8 @@ User Function xxSX3()
     (cAliasTp)->(DbGoTop())
  
 While !(cAliasTp)->(Eof())
-         
+
+       // If X3Obrigat()         
         Aadd(aCampos,((cAliasTp)->X3_CAMPO))                                                      
      
     (cAliasTp)->(dbSkip())
