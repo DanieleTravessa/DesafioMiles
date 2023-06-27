@@ -4,7 +4,9 @@ User Function dtTela()
 	Local aArea := GetArea()
 	//Dimensões da janela
 	Local nJanAltu := 80
-	Local nJanLarg := 350
+	Local nJanLarg := 400
+	Local nAltPosI := nJanAltu/2
+	Local nLarPosI := nJanLarg/2
 	//Objetos da tela
 	Local oGrpOpc
 	Local oBtnSair
@@ -20,12 +22,12 @@ User Function dtTela()
 	DEFINE MSDIALOG oDlgOpc TITLE "Importador de Dados" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
         
         //Grupo Ações
-		@ 003, 003 	GROUP oGrpOpc TO (nJanAltu/2), (nJanLarg/2) PROMPT "Ações: " OF oDlgOpc COLOR 0, 16777215 PIXEL
+		@ 003, 003 	GROUP oGrpOpc TO nAltPosI, nLarPosI PROMPT "Ações: " OF oDlgOpc COLOR 0, 16777215 PIXEL
 		
 			//Botões
-			@ (nJanAltu/2)-20, (nJanLarg/2)-(63*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
-			@ (nJanAltu/2)-20, (nJanLarg/2)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta() }, "Aguarde...")) PIXEL
-			@ (nJanAltu/2)-20, (nJanLarg/2)-(63*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut() }, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(63*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta() }, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(63*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut() }, "Aguarde...")) PIXEL
 	ACTIVATE MSDIALOG oDlgOpc CENTERED
 	
 	RestArea(aArea)
@@ -42,7 +44,7 @@ Static Function dtImporta()
 	Local oGrpAco
 	Local oBtnSair
 	Local oBtnImp
-	Local oBtnObri
+	//Local oBtnObri
 	Local oBtnArq
 	
 	Private aIteTip := {}
@@ -60,7 +62,7 @@ Static Function dtImporta()
 			oGetArq:bHelp := {||	ShowHelpCpo(	"cGetArq",;
 									{"Arquivo CSV ou TXT que será importado."+STR_PULA+"Exemplo: C:\teste.CSV"},2,;
 									{},2)}
-			@ 010, 311 BUTTON oBtnArq PROMPT "..."      SIZE 008, 011 OF oDlgPvt ACTION (fPegaArq()) PIXEL
+			@ 010, 311 BUTTON oBtnArq PROMPT "..."      SIZE 008, 011 OF oDlgPvt ACTION (dtPegArq()) PIXEL
 			
 			//Tipo de Importação
 			@ 028, 006 SAY        oSayTip PROMPT "Tipo Importação:"          SIZE 060, 007 OF oDlgPvt PIXEL
@@ -71,7 +73,7 @@ Static Function dtImporta()
 			
 			//Caracter de Separação do CSV
 			@ 043, 006 SAY        oSayCar PROMPT "Carac.Sep.:"               SIZE 060, 007 OF oDlgPvt PIXEL
-			@ 040, 070 MSGET      oGetCar VAR    cGetCar                     SIZE 030, 010 OF oDlgPvt PIXEL VALID fVldCarac()
+			@ 040, 070 MSGET      oGetCar VAR    cGetCar                     SIZE 030, 010 OF oDlgPvt PIXEL //VALID fVldCarac()
 			oGetArq:bHelp := {||	ShowHelpCpo(	"cGetCar",;
 									{"Caracter de separação no arquivo."+STR_PULA+"Exemplo: ';'"},2,;
 									{},2)}
@@ -81,44 +83,36 @@ Static Function dtImporta()
 		
 			//Botões
 			@ 070, (nJanLarg/2)-(63*1)  BUTTON oBtnSair PROMPT "Sair"          SIZE 60, 014 OF oDlgPvt ACTION (oDlgPvt:End()) PIXEL
-			@ 070, (nJanLarg/2)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"      SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| fConfirm(1) }, "Aguarde...")) PIXEL
-			@ 070, (nJanLarg/2)-(63*3)  BUTTON oBtnObri PROMPT "LayOut"   SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| fConfirm(2) }, "Aguarde...")) PIXEL
+			@ 070, (nJanLarg/2)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"      SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| u_dtLeCSV() }, "Aguarde...")) PIXEL
+			//@ 070, (nJanLarg/2)-(63*3)  BUTTON oBtnObri PROMPT "LayOut"   SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| fConfirm(2) }, "Aguarde...")) PIXEL
 	ACTIVATE MSDIALOG oDlgPvt CENTERED
 	
 	RestArea(aArea)
 Return
 
 //===================================================================================================================================================
-User Function dtLayOut()
+Static Function dtLayOut()
 //===================================================================================================================================================
-	Local cTabela      := ""
-	Local aVetor    	:= {}
-	Local aDupPlan		:= {}
-	Local aDupBase		:= {}
-    Private aParamBox	:= {}
+	Local cTabela   	:= ""
+	Local aArea 		:= GetArea()
+	Local aCampos		:= {}
+	Local aObrigatorio	:= {}
+    Local cAliasTp		:= GetNextAlias()
+	Local cCampo		:= "((cAliasTp)->X3_CAMPO)"
+	Private aParamBox	:= {}
 	
+	RpcSetEnv('99','01')
 	
-    aAdd(aParamBox,{1,"Tabela",Space(TamSX3("X3_ARQUIVO")[1])	,"@!","","" ,"",60,.T.}) //--- 10
+    aAdd(aParamBox,{1,"Tabela",Space(TamSX3("X3_ARQUIVO")[01]),"@!","","SX3","",60,.T.})
     
-	If ParamBox(aParamBox,"Importa Produtos",,,,,,,,"NovosProdutos",.T.,.T.)
+	If ParamBox(aParamBox,"Gerador de LayOut",,,,,,,,"NovosProdutos",.T.,.T.)
         cTabela := Alltrim(MV_PAR01)
-User Function xxSX3()
-
-    Local aArea := GetArea()
-    Local aCampos := {}
-    Local aObrigatorio := {}
-    Local cAliasTp := GetNextAlias() //"SX3TST"
-    Local cFiltro := "X3_ARQUIVO == 'SB1'"
-    Local cCampo := "((cAliasTp)->X3_CAMPO)"
-
-//PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
+	EndIf
 
     OpenSXs(/**/,/**/,/**/,/**/,"01",cAliasTp,"SX3",/**/,.F.)
-    (cAliasTp)->(DbSetFilter({|| &(cFiltro)}, cFiltro))
+    (cAliasTp)->(DbSetFilter({|| (cTabela)}, cTabela))
     (cAliasTp)->(DbGoTop())
-    
-   // cCampo := Alltrim(&(cCampo))
-
+      
     While !(cAliasTp)->(Eof())
        
         If X3Obrigat(&(cCampo)) == .T.
@@ -129,15 +123,39 @@ User Function xxSX3()
      
     (cAliasTp)->(dbSkip())
     EndDo
+
     cCampos := ArrTokStr(aCampos,"|")
     cObrigatorio := ArrTokStr(aObrigatorio,"|")
     MsgInfo(cCampos + CRLF + cObrigatorio)
     
-//Reset Environment    
+	RpcClearEnv()
+
     RestArea(aArea)
 Return
 
+//
+Static Function dtPegArq()
+//
+	Local cArq := ""
+	cArq := cGetFile( "Arquivo | *.*",;				//Máscara
+					"Arquivo LayOut ",;				//Título
+							,;						//Número da máscara
+							,;						//Diretório Inicial
+							.F.,;					//.F. == Abrir; .T. == Salvar
+							GETF_LOCALHARD,;		//Unidade do disco localDiretório full. Ex.: 'C:\TOTVS\arquivo.xlsx'
+							.F.)									//Não exibe diretório do servidor
+								
+	/*//Caso o arquivo não exista ou estiver em branco ou não for a extensão txt
+	If Empty(cArqAux) .Or. !File(cArqAux) .Or. (SubStr(cArqAux, RAt('.', cArqAux)+1, 3) != "txt" .And. SubStr(cArqAux, RAt('.', cArqAux)+1, 3) != "csv")
+		MsgStop("Arquivo <b>inválido</b>!", "Atenção")
+		
+	//Senão, define o get
+	Else
+		cGetArq := PadR(cArqAux, 99)
+		oGetArq:Refresh()
+	EndIf*/
 
+Return cArq
 
 //********************************************************************************
 User Function fSelUser()

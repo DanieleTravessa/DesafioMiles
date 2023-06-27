@@ -10,9 +10,9 @@
     /*/
 User Function dtLeCSV()
     
-    Local cPasta    := 'C:\InstanciasVSCode\ProjetoImportador\'
-    Local cArq      := 'Produtos.csv'
-    Local cDir      := (cPasta + cArq)
+    //Local cPasta    := 'C:\InstanciasVSCode\ProjetoImportador\'
+    //Local cArq      := 'Produtos.csv'
+    Local cDir      := u_dtPegArq(cArq)
     Local cLinha    := ''    
     
     Local aArea     := GetArea()
