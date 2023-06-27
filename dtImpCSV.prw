@@ -17,12 +17,12 @@ User Function dtLeCSV()
     
     Local aArea     := GetArea()
     
-    Local aRegistro := {}
+    Local aCampoSX3 := {}
     Local aCampErr  := {}
     Local aCabec    := {}
     Local cAliasTp  := GetNextAlias()
     Local cFiltro   := "X3_ARQUIVO == 'SB1'"
-    Local cCampo    := "(cAliasTp)->X3_CAMPO"
+    //Local cCampo    := "(cAliasTp)->X3_CAMPO"
     Local n         := 0
     Local oArq      := FwFileReader():New(cDir)
 
@@ -43,23 +43,29 @@ PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
     (cAliasTp)->(DbSetFilter({|| &(cFiltro)}, cFiltro))
     (cAliasTp)->(DbGoTop())
     
-    While &cFiltro            
+    /*While &cFiltro .and. SX3->(EOF())
         For n :=1 to &cFiltro->(LastRec())
         cCampo := &(cCampo)
         aAdd(aCabec, cCampo)    
         Next
-    EndDo
-
-
+        SX3->(DbSkip())
+    EndDo*/
+    aCampoSX3 := FwSx3Util():GetAllFields("SB1")
+    
     If oArq:Open()
         If !oArq:EOF()
             While (oArq:HasLine())
                 cLinha := oArq:GetLine()
                 If ('COD' $ UPPER(cLinha))
-                    aCampos:= StrTokArr(cLinha, ',')
+                    aCampos:= StrTokArr(cLinha, ',') //considerar indicar uma variável para escolha do separador
+                    aSize(aCabec,Len(aCampos))
                     For n := 1 to Len(aCampos)
-                        If (aCampos[n] == cCampo)
-                            aAdd(aRegistro, aCampos[n])
+                         //(Alltrim(aCampos[n]) $ aCampoSX3)
+                        If    nPos := ASCAN(aCampoSX3, {|x|Alltrim(x)==Alltrim(aCampos[n])})
+                            If nPos>Len(aCabec)
+                                aAdd(aCabec, aCampos[n])
+                            EndIf
+                            aCabec[nPos] := aCampos[n]                                                            
                         Else
                             aAdd(aCampErr, aCampos[n])
                         EndIf

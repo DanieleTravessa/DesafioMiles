@@ -51,7 +51,7 @@ Static Function dtImporta()
 	Private oSayCar, oGetCar, cGetCar := ';'
 	Private oDlgPvt
 
-	DEFINE MSDIALOG oDlgPvt TITLE "Carga Dados - Genérico" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
+	DEFINE MSDIALOG oDlgPvt TITLE "Importador" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
 		//Grupo Parâmetros
 		@ 003, 003 	GROUP oGrpPar TO 060, (nJanLarg/2) 	PROMPT "Parâmetros: " 		OF oDlgPvt COLOR 0, 16777215 PIXEL
 			//Caminho do arquivo
