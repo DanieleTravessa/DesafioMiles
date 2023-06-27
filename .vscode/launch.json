@@ -15,7 +15,16 @@
 	"lastPrograms": [
 		{
 			"label": "sigaesp"
+		},
+		{
+			"label": "u_dtTela"
+		},
+		{
+			"label": "sigacfg"
+		},
+		{
+			"label": "u_dtLeCSV"
 		}
 	],
-	"lastProgramExecuted": "sigaesp"
+	"lastProgramExecuted": "u_dtLeCSV"
 }

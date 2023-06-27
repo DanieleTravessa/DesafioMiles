@@ -1,0 +1,162 @@
+#Include 'Totvs.ch'
+#Include 'TopConn.ch'
+/*
+    TransfBordero - Transferencia de Títulos em Bordero
+    Redmine Nro. 45890 - TRANSFERENCIA DE CARTEIRA EM LOTE - OPERAÇÃO DE DESCONTO DE DUPLICATAS
+
+    @author     Cassandra Silva Van Ham
+    @since      21/06/2023
+*/
+//============================================================================================================================================================    
+User Function TransfBordero()
+//============================================================================================================================================================
+    Local aParamBox	:= {}
+
+	aAdd(aParamBox,{1,"Borderô De"		,Space(TamSX3("E1_NUMBOR")[1])	,"@!","",""	  ,""	,60,.F.}) //--- 01
+	aAdd(aParamBox,{1,"Borderô Até"		,Space(TamSX3("E1_NUMBOR")[1])	,"@!","",""	  ,""	,60,.T.}) //--- 02
+    aAdd(aParamBox,{1,"Emissão De"		,dDataBase	                    ,""	 ,"",""	  ,""	,60,.T.}) //--- 03
+    aAdd(aParamBox,{1,"Emissão Até"		,dDataBase  	                ,""	 ,"",""	  ,""	,60,.T.}) //--- 04
+    aAdd(aParamBox,{1,"Vencimento De"	,dDataBase	                    ,""	 ,"",""	  ,""	,60,.T.}) //--- 05
+    aAdd(aParamBox,{1,"Vencimento Até"	,dDataBase	                    ,""	 ,"",""	  ,""	,60,.T.}) //--- 06
+    aAdd(aParamBox,{1,"Cliente De"		,Space(TamSX3("E1_CLIENTE")[1])	,"@!","","SA1",""	,60,.F.}) //--- 07
+    aAdd(aParamBox,{1,"Loja De"			,Space(TamSX3("E1_LOJA")[1])	,"@!","",""	  ,""	,60,.F.}) //--- 08
+    aAdd(aParamBox,{1,"Cliente Até"		,Space(TamSX3("E1_CLIENTE")[1])	,"@!","","SA1",""	,60,.T.}) //--- 09
+    aAdd(aParamBox,{1,"Loja Até"		,Space(TamSX3("E1_LOJA")[1])	,"@!","",""	  ,""	,60,.T.}) //--- 10
+    aAdd(aParamBox,{1,"Banco De"		,Space(TamSX3("E1_PORTADO")[1])	,"@!","","SA6",""	,60,.F.}) //--- 11
+    aAdd(aParamBox,{1,"Banco Até"		,Space(TamSX3("E1_PORTADO")[1])	,"@!","","SA6",""	,60,.T.}) //--- 12
+
+	If ParamBox(aParamBox,"Filtra Títulos em Borderô",,,,,,,,"TransfBordero",.T.,.T.)
+        fQuery()
+	Endif
+
+Return Nil
+
+//============================================================================================================================================================    
+Static Function fQuery()
+//============================================================================================================================================================    
+    Local cQuery := ""
+
+    cQuery := " SELECT *"+ CRLF
+    cQuery += " FROM "+ RetSqlName("SE1")+ CRLF
+    cQuery += " WHERE D_E_L_E_T_ = ' '"+ CRLF
+    cQuery +=       " AND E1_NUMBOR BETWEEN '"+ MV_PAR01 +"' AND '"+ MV_PAR02 +"'"+ CRLF
+    cQuery +=       " AND E1_EMISSAO BETWEEN '"+ DTOS(MV_PAR03) +"' AND '"+ DTOS(MV_PAR04) +"'"+ CRLF
+    cQuery +=       " AND E1_VENCTO BETWEEN '"+ DTOS(MV_PAR05) +"' AND '"+ DTOS(MV_PAR06) +"'"+ CRLF
+    cQuery +=       " AND E1_CLIENTE BETWEEN '"+ MV_PAR07 +"' AND '"+ MV_PAR09 +"'"+ CRLF
+    cQuery +=       " AND E1_LOJA BETWEEN '"+ MV_PAR08 +"' AND '"+ MV_PAR10 +"'"+ CRLF
+    cQuery +=       " AND E1_PORTADO BETWEEN '"+ MV_PAR11 +"' AND '"+ MV_PAR12 +"'"+ CRLF
+    cQuery += " ORDER BY E1_FILIAL, E1_PREFIXO, E1_NUM, E1_PARCELA, E1_TIPO"
+
+    If Select("QRYSE1") <> 0
+        QRYSE1->(dbCloseArea())
+    Endif
+
+    TcQuery cQuery Alias "QRYSE1" New
+
+    QRYSE1->(dbGotop())
+
+    If QRYSE1->(!Eof())
+        Processa({|| fExecuta() },"Selecionando Informações...")
+    Else
+        Alert("Não existem dados com os parâmetros informados. Verifique!")    
+    Endif
+
+    QRYSE1->(dbCloseArea())
+
+Return Nil
+
+//============================================================================================================================================================    
+Static Function fExecuta()
+//============================================================================================================================================================    
+    Local aTitulos  := {}
+	Local bOk		:= { || fConfirma(oDlg, aTitulos) }
+	Local bCancel 	:= { || oDlg:End()}
+	Local aButtons	:= {}
+	Local oOk      	:= LoadBitmap( GetResources(), "LBOK")
+	Local oNo      	:= LoadBitmap( GetResources(), "LBNO")    
+
+    While QRYSE1->(!Eof())
+
+        aAdd(aTitulos, {    .F.,;                       //--- 01
+                            QRYSE1->E1_NUMBOR,;         //--- 02    
+                            QRYSE1->E1_PREFIXO,;        //--- 03    
+                            QRYSE1->E1_NUM,;            //--- 04
+                            QRYSE1->E1_PARCELA,;        //--- 05
+                            QRYSE1->E1_TIPO,;           //--- 06
+                            QRYSE1->E1_CLIENTE,;        //--- 07
+                            QRYSE1->E1_LOJA,;           //--- 08
+                            QRYSE1->E1_NOMCLI,;         //--- 09
+                            QRYSE1->E1_VALOR,;          //--- 10
+                            QRYSE1->E1_EMISSAO,;        //--- 11    
+                            QRYSE1->E1_VENCTO,;         //--- 12
+                            QRYSE1->E1_PORTADO,;        //--- 13
+                            QRYSE1->E1_AGEDEP,;         //--- 14
+                            QRYSE1->E1_CONTA,;          //--- 15
+                            QRYSE1->A6_NOME,;           //--- 16
+                            QRYSE1->E1_NUMBOR})         //--- 17
+
+        QRYSE1->(dbSkip()) 
+    Enddo
+
+	Define MsDialog oDlg Title "Selecione os Títulos" From 00,00 To 27,95 Of oMainWnd Style 128
+	oDlg:lEscClose := .F.
+	
+	aAdd( aButtons, {"PESQUISA", {|| Alert("Teste") }, "Pesquisa...", "Pesquisa" , {|| .T.}} )
+
+	@ 035,005 ListBox oResp Var cVarQ Fields Header "","Prefixo","Número","Parcela","Tipo" ColSizes 20,50,50,50,50 Size 365,170 Of oDlg Pixel
+	oResp:SetArray(aTitulos)
+	oResp:bLDblClick:= { || aTitulos[oResp:nAt,1] := !aTitulos[oResp:nAt,1] }
+	oResp:bLine 	:= { || {iif(aTitulos[oResp:nAt,01],oOk,oNo),aTitulos[oResp:nAt,03],aTitulos[oResp:nAt,04],aTitulos[oResp:nAt,05],aTitulos[oResp:nAt,06]} }
+	Activate MsDialog oDlg Centered On Init EnchoiceBar(oDlg,bOk,bCancel,,@aButtons)    
+
+Return Nil
+
+//============================================================================================================================================================    
+Static Function fConfirma(oDlg, aTitulos)
+//============================================================================================================================================================    
+    Local nCont         := 0
+    Local aTransfere    := {}
+    Private lMsErroAuto := .F.
+
+    For nCont:=1 to Len(aTitulos)
+
+        If aTitulos[nCont,1]
+
+            lMsErroAuto := .F.
+            aTransfere  := {}
+
+            //--- Chave do título:
+            aAdd(aTransfere, {"E1_PREFIXO"  , aTitulos[nCont,03]    , Nil })
+            aAdd(aTransfere, {"E1_NUM"      , aTitulos[nCont,04]    , Nil })
+            aAdd(aTransfere, {"E1_PARCELA"  , aTitulos[nCont,05]    , Nil })
+            aAdd(aTransfere, {"E1_TIPO"     , aTitulos[nCont,06]    , Nil })
+        
+            //--- Informações bancárias:
+            aAdd(aTransfere, {"AUTDATAMOV"  , dDataBase             , Nil })
+            aAdd(aTransfere, {"AUTBANCO"    , aTitulos[nCont,13]    , Nil })
+            aAdd(aTransfere, {"AUTAGENCIA"  , aTitulos[nCont,14]    , Nil })
+            aAdd(aTransfere, {"AUTCONTA"    , aTitulos[nCont,15]    , Nil })
+            aAdd(aTransfere, {"AUTSITUACA"  , "2"                   , Nil })
+            aAdd(aTransfere, {"AUTNUMBCO"   , aTitulos[nCont,17]    , Nil })
+            aAdd(aTransfere, {"AUTGRVFI2"   , .T.                   , Nil })
+        
+            //--- Carteira descontada deve ser encaminhado o valor de crédito, desconto e IOF já calculados:
+            If cSituaca $ "2|7"
+                aAdd(aTransfere, {"AUTDESCONT",   0                 ,    Nil })
+                aAdd(aTransfere, {"AUTCREDIT",    aTitulos[nCont,10],    Nil })
+                aAdd(aTransfere, {"AUTIOF",       0                 ,    Nil })
+            EndIf
+
+            MsExecAuto({|x,y| FINA060()}, 2, aTransfere)
+        
+            If lMsErroAuto
+                MostraErro()
+            EndIf
+
+        Endif
+
+    Next nCont
+
+    oDlg:End()
+
+Return Nil
