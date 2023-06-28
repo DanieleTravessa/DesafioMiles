@@ -115,6 +115,7 @@ Static Function dtImpCSV()
 
     For n := 1 to Len(aCampos)
         aAdd(aDados, {aCampos[n], aLinha[n],''})
+        n++
     Next
     Alert(ArrTokStr(aDados,"|"))
     

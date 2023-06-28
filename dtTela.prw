@@ -1,10 +1,14 @@
 #INCLUDE'TOTVS.CH'
-		
-User Function dtTela()
+#INCLUDE'TBICONN.CH'
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
+  User Function dtTela()
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Local aArea := GetArea()
 	//Dimensões da janela
 	Local nJanAltu := 80
 	Local nJanLarg := 400
+	//Posicionamento inicial dos objetos na janela
 	Local nAltPosI := nJanAltu/2
 	Local nLarPosI := nJanLarg/2
 	//Objetos da tela
@@ -13,11 +17,13 @@ User Function dtTela()
 	Local oBtnImp
 	Local oBtnLay
 
-//	Private aIteTip := {}
+	Private aIteTok := {";",","}
 	Private oSayArq, oGetArq, cGetArq := Space(99)
-	Private oSayTip, oCmbTip, cCmbTip := ""
-	Private oSayCar, oGetCar, cGetCar := ';'
-	Private oDlgOpc
+	Private oSayTab, oCmbTab, cCmbTab := ""
+	Private oSayTok, oCmbTok, cCmbTok := ';'
+	Private oDlgOpc	
+	
+	cCmbTok := aIteTok[1]
 
 	DEFINE MSDIALOG oDlgOpc TITLE "Importador de Dados" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
         
@@ -25,9 +31,9 @@ User Function dtTela()
 		@ 003, 003 	GROUP oGrpOpc TO nAltPosI, nLarPosI PROMPT "Ações: " OF oDlgOpc COLOR 0, 16777215 PIXEL
 		
 			//Botões
-			@ (nAltPosI)-20, (nLarPosI)-(63*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta() }, "Aguarde...")) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(63*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut() }, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta() }, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut() }, "Aguarde...")) PIXEL
 	ACTIVATE MSDIALOG oDlgOpc CENTERED
 	
 	RestArea(aArea)
@@ -35,57 +41,56 @@ User Function dtTela()
 Return
 
 Static Function dtImporta()
+
 	Local aArea := GetArea()
 	//Dimensões da janela
 	Local nJanAltu := 180
 	Local nJanLarg := 650
+	//Posicionamento Inicial na Janela
+	Local nAltPosI := nJanAltu/2
+	Local nLarPosI := nJanLarg/2
 	//Objetos da tela
 	Local oGrpPar
 	Local oGrpAco
 	Local oBtnSair
-	Local oBtnImp
-	//Local oBtnObri
+	Local oBtnImp	
 	Local oBtnArq
 	
-	Private aIteTip := {}
-	Private oSayArq, oGetArq, cGetArq := Space(99)
-	Private oSayTip, oCmbTip, cCmbTip := ""
-	Private oSayCar, oGetCar, cGetCar := ';'
-	Private oDlgPvt
-
-	DEFINE MSDIALOG oDlgPvt TITLE "Importador" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
+	Private oDlgTin
+		
+	DEFINE MSDIALOG oDlgTin TITLE "Importador" FROM 000, 000  TO nJanAltu, nJanLarg COLORS 0, 16777215 PIXEL
 		//Grupo Parâmetros
-		@ 003, 003 	GROUP oGrpPar TO 060, (nJanLarg/2) 	PROMPT "Parâmetros: " 		OF oDlgPvt COLOR 0, 16777215 PIXEL
+		@ 003, 003 	GROUP oGrpPar TO 060, (nLarPosI) 	PROMPT "Parâmetros: " 		OF oDlgTin COLOR 0, 16777215 PIXEL
 			//Caminho do arquivo
-			@ 013, 006 SAY        oSayArq PROMPT "Arquivo:"                  SIZE 060, 007 OF oDlgPvt PIXEL
-			@ 010, 070 MSGET      oGetArq VAR    cGetArq                     SIZE 240, 010 OF oDlgPvt PIXEL
+			@ 013, 006 SAY        oSayArq PROMPT "Arquivo:"                  SIZE 060, 007 OF oDlgTin PIXEL
+			@ 010, 070 MSGET      oGetArq VAR    cGetArq                     SIZE 240, 010 OF oDlgTin PIXEL
 			oGetArq:bHelp := {||	ShowHelpCpo(	"cGetArq",;
 									{"Arquivo CSV ou TXT que será importado."+STR_PULA+"Exemplo: C:\teste.CSV"},2,;
 									{},2)}
-			@ 010, 311 BUTTON oBtnArq PROMPT "..."      SIZE 008, 011 OF oDlgPvt ACTION (dtPegArq()) PIXEL
+			@ 010, 311 BUTTON oBtnArq PROMPT "..."      SIZE 008, 011 OF oDlgTin ACTION (dtPegArq()) PIXEL
 			
 			//Tipo de Importação
-			@ 028, 006 SAY        oSayTip PROMPT "Tipo Importação:"          SIZE 060, 007 OF oDlgPvt PIXEL
-			@ 025, 070 MSCOMBOBOX oCmbTip VAR    cCmbTip ITEMS aIteTip       SIZE 100, 010 OF oDlgPvt PIXEL
-			oCmbTip:bHelp := {||	ShowHelpCpo(	"cCmpTip",;
-									{"Tipo de Importação que será processada."+STR_PULA+"Exemplo: 1 = Bancos"},2,;
-									{},2)}
+			//@ 028, 006 SAY        oSayTab PROMPT "Tabela de Importação:"     SIZE 060, 007 OF oDlgTin PIXEL
+			//@ 025, 070 MSCOMBOBOX oCmbTab VAR    cCmbTab ITEMS aIteTab       SIZE 100, 010 OF oDlgTin PIXEL
+			//oCmbTab:bHelp := {||	ShowHelpCpo(	"cCmpTip",;
+			//						{"Tipo de Importação que será processada."+STR_PULA+"Exemplo: 1 = Bancos"},2,;
+			//						{},2)}
 			
 			//Caracter de Separação do CSV
-			@ 043, 006 SAY        oSayCar PROMPT "Carac.Sep.:"               SIZE 060, 007 OF oDlgPvt PIXEL
-			@ 040, 070 MSGET      oGetCar VAR    cGetCar                     SIZE 030, 010 OF oDlgPvt PIXEL //VALID fVldCarac()
+			@ 043, 006 SAY        oSayTok PROMPT "Carac.Sep.:"               SIZE 060, 007 OF oDlgTin PIXEL
+			@ 040, 070 MSCOMBOBOX oCmbTok VAR    cCmbTok ITEMS aIteTok       SIZE 030, 010 OF oDlgTin PIXEL
 			oGetArq:bHelp := {||	ShowHelpCpo(	"cGetCar",;
 									{"Caracter de separação no arquivo."+STR_PULA+"Exemplo: ';'"},2,;
 									{},2)}
 			
 		//Grupo Ações
-		@ 063, 003 	GROUP oGrpAco TO (nJanAltu/2)-3, (nJanLarg/2) 	PROMPT "Ações: " 		OF oDlgPvt COLOR 0, 16777215 PIXEL
+		@ 063, 003 	GROUP oGrpAco TO nAltPosI-3, nLarPosI 	PROMPT "Ações: " 		OF oDlgTin COLOR 0, 16777215 PIXEL
 		
 			//Botões
-			@ 070, (nJanLarg/2)-(63*1)  BUTTON oBtnSair PROMPT "Sair"          SIZE 60, 014 OF oDlgPvt ACTION (oDlgPvt:End()) PIXEL
-			@ 070, (nJanLarg/2)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"      SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| u_dtLeCSV() }, "Aguarde...")) PIXEL
-			//@ 070, (nJanLarg/2)-(63*3)  BUTTON oBtnObri PROMPT "LayOut"   SIZE 60, 014 OF oDlgPvt ACTION (Processa({|| fConfirm(2) }, "Aguarde...")) PIXEL
-	ACTIVATE MSDIALOG oDlgPvt CENTERED
+			@ 070, (nLarPosI)-(63*1)  BUTTON oBtnSair PROMPT "Sair"          SIZE 60, 014 OF oDlgTin ACTION (oDlgTin:End()) PIXEL
+			@ 070, (nLarPosI)-(63*2)  BUTTON oBtnImp  PROMPT "Importar"      SIZE 60, 014 OF oDlgTin ACTION (Processa({|| dtLeCSV() }, "Aguarde...")) PIXEL
+			
+	ACTIVATE MSDIALOG oDlgTin CENTERED
 	
 	RestArea(aArea)
 Return
@@ -99,19 +104,22 @@ Static Function dtLayOut()
 	Local aObrigatorio	:= {}
     Local cAliasTp		:= GetNextAlias()
 	Local cCampo		:= "((cAliasTp)->X3_CAMPO)"
+	
 	Private aParamBox	:= {}
 	
-	RpcSetEnv('99','01')
-	
-    aAdd(aParamBox,{1,"Tabela",Space(TamSX3("X3_ARQUIVO")[01]),"@!","","SX3","",60,.T.})
-    
-	If ParamBox(aParamBox,"Gerador de LayOut",,,,,,,,"NovosProdutos",.T.,.T.)
+PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
+
+   
+
+   aAdd(aParamBox,{1,"Tabela",Space(5),"@!","","X3_ARQUIVO","",60,.T.})
+    If ParamBox(aParamBox,"Gerador de LayOut",,,,,,,,"NovosProdutos",.T.,.T.)
         cTabela := Alltrim(MV_PAR01)
 	EndIf
 
-    OpenSXs(/**/,/**/,/**/,/**/,"01",cAliasTp,"SX3",/**/,.F.)
+	OpenSXs(/**/,/**/,/**/,/**/,"01",cAliasTp,"SX3",/**/,.F.)
     (cAliasTp)->(DbSetFilter({|| (cTabela)}, cTabela))
     (cAliasTp)->(DbGoTop())
+    
       
     While !(cAliasTp)->(Eof())
        
@@ -128,43 +136,45 @@ Static Function dtLayOut()
     cObrigatorio := ArrTokStr(aObrigatorio,"|")
     MsgInfo(cCampos + CRLF + cObrigatorio)
     
-	RpcClearEnv()
+RESET ENVIRONMENT
 
     RestArea(aArea)
+
+	dtSelCamp(aCampos)
+
 Return
 
-//
+//*************************
 Static Function dtPegArq()
-//
+//*************************
 	Local cArq := ""
 	cArq := cGetFile( "Arquivo | *.*",;				//Máscara
 					"Arquivo LayOut ",;				//Título
-							,;						//Número da máscara
+							0,;						//Número da máscara
 							,;						//Diretório Inicial
 							.F.,;					//.F. == Abrir; .T. == Salvar
 							GETF_LOCALHARD,;		//Unidade do disco localDiretório full. Ex.: 'C:\TOTVS\arquivo.xlsx'
 							.F.)									//Não exibe diretório do servidor
-								
+
+	//cGetFile([mascar],[ctitulo],[nmasc],[cdirinit],[lsalvar],[nopcoes])							
 	/*//Caso o arquivo não exista ou estiver em branco ou não for a extensão txt
 	If Empty(cArqAux) .Or. !File(cArqAux) .Or. (SubStr(cArqAux, RAt('.', cArqAux)+1, 3) != "txt" .And. SubStr(cArqAux, RAt('.', cArqAux)+1, 3) != "csv")
-		MsgStop("Arquivo <b>inválido</b>!", "Atenção")
+		MsgStop("Arquivo <b>inválido</b>!", "Atenção")*/
 		
 	//Senão, define o get
-	Else
-		cGetArq := PadR(cArqAux, 99)
-		oGetArq:Refresh()
-	EndIf*/
+	//Else
+		cGetArq := PadR(cArq, 99)
+		//oGetArq:Refresh()
+	//EndIf*/
 
-Return cArq
+Return cGetArq
 
 //********************************************************************************
-User Function fSelUser()
+Static Function dtSelCamp(aCampos)
 //********************************************************************************
-	Local oModel 	:= FWModelActive()
-	Local oResp		:= Nil
-	Local oZAC  	:= oModel:GetModel("ZACMASTER")
-	Local aRet 		:= {}
-	Local aUsers	:= {}
+	
+	Local oResp		:= Nil	
+	Local aRet 		:= {}	
 	Local nI		:= 0
 	Local lOk		:= .F.
 	Local bOk		:= { || lOk := .T., oDlg:End() }
@@ -182,19 +192,19 @@ User Function fSelUser()
 		Endif
 	Next
 		
-	ASort( aUsers,,, {|x,y| x[4] < y[4] })
+	ASort( aCampos,,, {|x,y| x[4] < y[4] })
 		
-	Define MsDialog oDlg Title "Selecione os Responsáveis" From 00,00 To 27,95 Of oMainWnd Style 128
+	DEFINE MsDialog oDlg Title "Selecione os Campos" From 00,00 To 27,95 Of oMainWnd Style 128
 	oDlg:lEscClose := .F.
 	
 	Aadd( aButtons, {"PESQUISA", {|| PesqUser(oResp) }, "Pesquisa...", "Pesquisa" , {|| .T.}} )
 
 	@ 035,005 ListBox oResp Var cVarQ Fields Header "","Codigo","Usuário","Nome" ColSizes 20,50,50,50 Size 365,170 Of oDlg Pixel
-	oResp:SetArray(aUsers)
-	oResp:bLDblClick:= { || aUsers[oResp:nAt,1] := !aUsers[oResp:nAt,1] }
-	oResp:bLine 	:= { || {	iif(aUsers[oResp:nAt,01],oOk,oNo),aUsers[oResp:nAt,02],aUsers[oResp:nAt,03],aUsers[oResp:nAt,04]} }
+	oResp:SetArray(aCampos)
+	oResp:bLDblClick:= { || aCampos[oResp:nAt,1] := !aCampos[oResp:nAt,1] }
+	oResp:bLine 	:= { || {	iif(aCampos[oResp:nAt,01],oOk,oNo),aCampos[oResp:nAt,02],aCampos[oResp:nAt,03],aCampos[oResp:nAt,04]} }
 	Activate MsDialog oDlg Centered On Init EnchoiceBar(oDlg,bOk,bCancel,,@aButtons)
-	   		
+	/*   		
 	If lOk
 		For nI := 1 to Len(aUsers)
 			If aUsers[nI,01]
@@ -202,67 +212,117 @@ User Function fSelUser()
 			Endif
 		Next
 	Endif
-	 
+	 */
 Return .T.
 
 
-    /*If ParamBox(aParamBox,"Importa Produtos",,,,,,,,"NovosProdutos",.T.,.T.)
-		cArquivo := Alltrim(MV_PAR01)
-		If File(cArquivo)
-			Processa({|| readArquivo(cArquivo, @aVetor, @aDupPlan, @aDupBase) }, "Importando....")
-			If Len(aDupPlan) > 0 .or. Len(aDupBase) > 0
-				Tela(aVetor, aDupPlan, aDupBase)
-			Endif
-        Else
-            Alert("Arquivo '"+ cArquivo +"' inválido!")    
-		Endif
-	Endif*/
-/*
-Return Nil
-   Local nCont         := 0
-    Local aTransfere    := {}
-    Private lMsErroAuto := .F.
+//*******************************************************************************************************************
 
-    For nCont:=1 to Len(aTitulos)
 
-        If aTitulos[nCont,1]
+Static Function dtLeCSV()
+    
+    //Local cPasta    := 'C:\InstanciasVSCode\ProjetoImportador\'
+    //Local cArq      := 'Produtos.csv'
+    //Local cDir      := cPasta+cArq
+    Local cLinha    := ''    
+    
+    Local aArea     := GetArea()
+    
+    Local aCampoSX3 := {}
+    Local aCampErr  := {}
+    Local aCabec    := {}
+    Local cAliasTp  := GetNextAlias()
+    Local cFiltro   := "X3_ARQUIVO == 'SB1'"
+    //Local cCampo    := "(cAliasTp)->X3_CAMPO"
+    Local n         := 0
+    Local oArq      := FwFileReader():New(cGetArq)
 
-            lMsErroAuto := .F.
-            aTransfere  := {}
+    Private aLinha  := {}
+    Private aCampos := {}    
+    Private cB1cod  := ''
+    Private cB1desc := ''
+    Private cB1tipo := ''
+    Private cB1um   := ''
+    Private nB1prv  := 0   
+ 
 
-            //--- Chave do título:
-            aAdd(aTransfere, {"E1_PREFIXO"  , aTitulos[nCont,03]    , Nil })
-            aAdd(aTransfere, {"E1_NUM"      , aTitulos[nCont,04]    , Nil })
-            aAdd(aTransfere, {"E1_PARCELA"  , aTitulos[nCont,05]    , Nil })
-            aAdd(aTransfere, {"E1_TIPO"     , aTitulos[nCont,06]    , Nil })
-        
-            //--- Informações bancárias:
-            aAdd(aTransfere, {"AUTDATAMOV"  , dDataBase             , Nil })
-            aAdd(aTransfere, {"AUTBANCO"    , aTitulos[nCont,13]    , Nil })
-            aAdd(aTransfere, {"AUTAGENCIA"  , aTitulos[nCont,14]    , Nil })
-            aAdd(aTransfere, {"AUTCONTA"    , aTitulos[nCont,15]    , Nil })
-            aAdd(aTransfere, {"AUTSITUACA"  , "2"                   , Nil })
-            aAdd(aTransfere, {"AUTNUMBCO"   , aTitulos[nCont,17]    , Nil })
-            aAdd(aTransfere, {"AUTGRVFI2"   , .T.                   , Nil })
-        
-            //--- Carteira descontada deve ser encaminhado o valor de crédito, desconto e IOF já calculados:
-            If cSituaca $ "2|7"
-                aAdd(aTransfere, {"AUTDESCONT",   0                 ,    Nil })
-                aAdd(aTransfere, {"AUTCREDIT",    aTitulos[nCont,10],    Nil })
-                aAdd(aTransfere, {"AUTIOF",       0                 ,    Nil })
-            EndIf
+PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
 
-            MsExecAuto({|x,y| FINA060()}, 2, aTransfere)
-        
-            If lMsErroAuto
-                MostraErro()
-            EndIf
+    
+    OpenSXs(/**/,/**/,/**/,/**/,"01",cAliasTp,"SX3",/**/,.F.)
+    
+    (cAliasTp)->(DbSetFilter({|| &(cFiltro)}, cFiltro))
+    (cAliasTp)->(DbGoTop())
+    
+    /*While &cFiltro .and. SX3->(EOF())
+        For n :=1 to &cFiltro->(LastRec())
+        cCampo := &(cCampo)
+        aAdd(aCabec, cCampo)    
+        Next
+        SX3->(DbSkip())
+    EndDo*/
+    aCampoSX3 := FwSx3Util():GetAllFields("SB1")
+    
+    If oArq:Open()
+        If !oArq:EOF()
+            While (oArq:HasLine())
+                cLinha := oArq:GetLine()
+                If ('COD' $ UPPER(cLinha))
+                    aCampos:= StrTokArr(cLinha, ',') //considerar indicar uma variável para escolha do separador
+                    aSize(aCabec,Len(aCampos))
+                    For n := 1 to Len(aCampos)
+                         //(Alltrim(aCampos[n]) $ aCampoSX3)
+                        If    nPos := ASCAN(aCampoSX3, {|x|Alltrim(x)==Alltrim(aCampos[n])})
+                            If nPos>Len(aCabec)
+                                aAdd(aCabec, aCampos[n])
+                            EndIf
+                            aCabec[nPos] := aCampos[n]                                                            
+                        Else
+                            aAdd(aCampErr, aCampos[n])
+                        EndIf
+                    Next
+                Else 
+                    aLinha := StrTokArr(cLinha, ';')                           
+                        dtImpCSV()
+                    
+                EndIf
+            EndDo
+        EndIf    
+        oArq:Close()
+    EndIf
 
-        Endif
+    RestArea(aArea)
 
-    Next nCont
+Reset Environment
 
-    oDlg:End()
+Return 
 
-Return Nil
-*/
+
+/*{Protheus.doc} dtImpCSV
+    @type  Function
+    @author Daniele Travessa
+    @since 08/05/2023 */
+    
+Static Function dtImpCSV()
+
+    Local aDados        := {}
+    //Local nOper         := 3
+    Local n := 0
+    //Private lMsErroAuto := .F.
+
+    //PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01' MODULO 'EST'
+
+   // aAdd(aDados, {'B1_FILIAL', xFilial('SB1') ,''})
+
+    For n := 1 to Len(aCampos)
+        aAdd(aDados, {aCampos[n], aLinha[n],''})        
+    Next
+    Alert(ArrTokStr(aDados,"|"))
+    
+    //MsExecAuto({|x, y| MATA010(x, y), aDados, nOper})
+
+   // If lMsErroAuto
+        //MostraErro()
+    //EndIf
+
+Return 
