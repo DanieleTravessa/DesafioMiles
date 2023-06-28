@@ -32,8 +32,8 @@
 		
 			//Botões
 			@ (nAltPosI)-20, (nLarPosI)-(64*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(64*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta() }, "Aguarde...")) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(64*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut() }, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta(), oDlgOpc:End()}, "Aguarde...")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut(), oDlgOpc:End()}, "Aguarde...")) PIXEL
 	ACTIVATE MSDIALOG oDlgOpc CENTERED
 	
 	RestArea(aArea)
@@ -77,7 +77,7 @@ Static Function dtImporta()
 			//						{},2)}
 			
 			//Caracter de Separação do CSV
-			@ 043, 006 SAY        oSayTok PROMPT "Carac.Sep.:"               SIZE 060, 007 OF oDlgTin PIXEL
+			@ 043, 006 SAY        oSayTok PROMPT "Separador:"               SIZE 060, 007 OF oDlgTin PIXEL
 			@ 040, 070 MSCOMBOBOX oCmbTok VAR    cCmbTok ITEMS aIteTok       SIZE 030, 010 OF oDlgTin PIXEL
 			oGetArq:bHelp := {||	ShowHelpCpo(	"cGetCar",;
 									{"Caracter de separação no arquivo."+STR_PULA+"Exemplo: ';'"},2,;
@@ -108,10 +108,9 @@ Static Function dtLayOut()
 	Private aParamBox	:= {}
 	
 PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
+  
 
-   
-
-   aAdd(aParamBox,{1,"Tabela",Space(5),"@!","","X3_ARQUIVO","",60,.T.})
+   aAdd(aParamBox,{1,"Tabela",Space(5),"@!","","SX2PAD","",60,.T.})
     If ParamBox(aParamBox,"Gerador de LayOut",,,,,,,,"NovosProdutos",.T.,.T.)
         cTabela := Alltrim(MV_PAR01)
 	EndIf
@@ -119,8 +118,7 @@ PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
 	OpenSXs(/**/,/**/,/**/,/**/,"01",cAliasTp,"SX3",/**/,.F.)
     (cAliasTp)->(DbSetFilter({|| (cTabela)}, cTabela))
     (cAliasTp)->(DbGoTop())
-    
-      
+          
     While !(cAliasTp)->(Eof())
        
         If X3Obrigat(&(cCampo)) == .T.
@@ -229,21 +227,23 @@ Static Function dtLeCSV()
     Local aArea     := GetArea()
     
     Local aCampoSX3 := {}
-    Local aCampErr  := {}
-    Local aCabec    := {}
+    //Local aCampErr  := {}
+
     Local cAliasTp  := GetNextAlias()
     Local cFiltro   := "X3_ARQUIVO == 'SB1'"
     //Local cCampo    := "(cAliasTp)->X3_CAMPO"
-    Local n         := 0
+    //Local n         := 0
     Local oArq      := FwFileReader():New(cGetArq)
 
-    Private aLinha  := {}
-    Private aCampos := {}    
-    Private cB1cod  := ''
-    Private cB1desc := ''
-    Private cB1tipo := ''
-    Private cB1um   := ''
-    Private nB1prv  := 0   
+    Private aCabec  	:= {}
+    Private aLinha  	:= {}
+    Private aCampos 	:= {}
+	Private aRegistro 	:= {}   
+    Private cB1cod  	:= ''
+    Private cB1desc 	:= ''
+    Private cB1tipo 	:= ''
+    Private cB1um   	:= ''
+    Private nB1prv  	:= 0   
  
 
 PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
@@ -269,34 +269,36 @@ PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
                 cLinha := oArq:GetLine()
                 If ('COD' $ UPPER(cLinha))
                     aCampos:= StrTokArr(cLinha, ',') //considerar indicar uma variável para escolha do separador
-                    aSize(aCabec,Len(aCampos))
-                    For n := 1 to Len(aCampos)
-                         //(Alltrim(aCampos[n]) $ aCampoSX3)
-                        If    nPos := ASCAN(aCampoSX3, {|x|Alltrim(x)==Alltrim(aCampos[n])})
-                            If nPos>Len(aCabec)
-                                aAdd(aCabec, aCampos[n])
-                            EndIf
-                            aCabec[nPos] := aCampos[n]                                                            
-                        Else
-                            aAdd(aCampErr, aCampos[n])
-                        EndIf
-                    Next
-                Else 
-                    aLinha := StrTokArr(cLinha, ';')                           
-                        dtImpCSV()
-                    
-                EndIf
-            EndDo
+                    //aSize(aCabec,Len(aCampos))
+				
+                	/*For n := 1 to Len(aCampos)
+                    	(Alltrim(aCampos[n]) $ aCampoSX3)
+                    	//If    nPos := ASCAN(aCampoSX3, {|x|Alltrim(x)==Alltrim(aCampos[n])})
+                        	//If nPos>Len(aCabec)
+                            	aAdd(aCabec, aCampos[n])
+                        	EndIf
+                	        	aCabec[nPos] := aCampos[n]                                                            
+                        	Else
+                            	aAdd(aCampErr, aCampos[n])
+                    	EndIf
+					Next	*/		
+				Else
+					aRegistro := StrTokArr(cLinha, ',')
+					/*For n := 1 to len(aCabec)
+						aAdd(aRegistro, aLinha[n])						
+					Next */
+				dtImpCSV() 
+				EndIf                                              			
+			EndDo			
         EndIf    
         oArq:Close()
-    EndIf
-
-    RestArea(aArea)
+    EndIf	
+    
+	RestArea(aArea)
 
 Reset Environment
 
 Return 
-
 
 /*{Protheus.doc} dtImpCSV
     @type  Function
@@ -313,10 +315,11 @@ Static Function dtImpCSV()
     //PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01' MODULO 'EST'
 
    // aAdd(aDados, {'B1_FILIAL', xFilial('SB1') ,''})
+	
+    	For n := 1 to Len(aCampos)//aCabec
+        	aAdd(aDados, {aCampos[n], aRegistro[n],''})        
+    	Next
 
-    For n := 1 to Len(aCampos)
-        aAdd(aDados, {aCampos[n], aLinha[n],''})        
-    Next
     Alert(ArrTokStr(aDados,"|"))
     
     //MsExecAuto({|x, y| MATA010(x, y), aDados, nOper})
