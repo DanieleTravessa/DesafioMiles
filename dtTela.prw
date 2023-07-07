@@ -175,7 +175,7 @@ Static Function dtAdd(cItem)
      oLay:Add( cItem, 0 )
      oLay:Refresh()
 
-     oSX3: Del( oSX3:nAt )
+     oSX3:Del( oSX3:nAt )
      oSX3:Refresh()
 
 Return
@@ -193,7 +193,7 @@ Static Function dtBack(cItem)
      oSX3:Add( cItem, 0 )
      oSX3:Refresh()
 
-     oLay: Del( oLay:nAt )
+     oLay:Del( oLay:nAt )
      oLay:Refresh()
 
 Return	
