@@ -153,8 +153,8 @@ Static Function dtSelCamp()
 	//oResp:bLDblClick:= { || aCampos[oResp:nAt,1] := !aCampos[oResp:nAt,1] }
 
 	//@ 152/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn4 PROMPT ">>>" SIZE 041, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
-	@ 052,95 BUTTON oBtn1 PROMPT ">>>" SIZE 031, 012 OF oDlg ACTION dtAdd(aCampoSX3[oSX3:nAt]) PIXEL
-	@ 076,95 BUTTON oBtn2 PROMPT "<<<" SIZE 031, 012 OF oDlg ACTION dtBack(aCampoLay[oLay:nAt]) PIXEL
+	@ 052,95 BUTTON oBtn1 PROMPT ">>>" SIZE 031, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
+	@ 076,95 BUTTON oBtn2 PROMPT "<<<" SIZE 031, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
 	//@ 176/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn5 PROMPT "<<<" SIZE 041, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
     
     oSay1:= TSay():New( 001,039,{||"Campos do Layout:"},oDlg,,oFont,.F.,.F.,.F.,.T.,CLR_BLACK,CLR_WHITE,100,012)
@@ -172,11 +172,11 @@ Return .T.
 Static Function dtAdd(cItem)
 //===================================================================================================================================================
 
-     oLay:Add( cItem, 0 )
-     oLay:Refresh()
+     oListBox2:Add( cItem, 0 )
+     oListBox2:Refresh()
 
-     oSX3: Del( oSX3:nAt )
-     oSX3:Refresh()
+     oListBox1: Del( oSX3:nAt )
+     oListBox1:Refresh()
 
 Return
 
@@ -190,11 +190,11 @@ Return
 Static Function dtBack(cItem)
 //===================================================================================================================================================
 
-     oSX3:Add( cItem, 0 )
-     oSX3:Refresh()
+     oListBox1:Add( cItem, 0 )
+     oListBox1:Refresh()
 
-     oLay: Del( oLay:nAt )
-     oLay:Refresh()
+     oListBox2: Del( oLay:nAt )
+     oListBox2:Refresh()
 
 Return	
 
