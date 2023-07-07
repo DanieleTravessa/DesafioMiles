@@ -27,6 +27,7 @@ User Function dtTela()
 	Local oBtnSair
 	Local oBtnImp
 	Local oBtnLay
+	Local bOk		:= { || lOk := .T., oDlg:End() }
 
 	Private aIteTok := {";",","}
 	Private oSayArq, oGetArq, cGetArq := Space(99)
@@ -43,8 +44,8 @@ User Function dtTela()
 		
 			//Botões
 			@ (nAltPosI)-20, (nLarPosI)-(64*1)  BUTTON oBtnSair PROMPT "Sair"       SIZE 60, 014 OF oDlgOpc ACTION (oDlgOpc:End()) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(64*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta()}, "Aguarde...","Executando Rotina dtImporta")) PIXEL
-			@ (nAltPosI)-20, (nLarPosI)-(64*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut()}, "Aguarde...","Executando Rotina dtLayOut")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*2)  BUTTON oBtnImp  PROMPT "Importar"   SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtImporta(), bOk}, "Aguarde...","Executando Rotina dtImporta")) PIXEL
+			@ (nAltPosI)-20, (nLarPosI)-(64*3)  BUTTON oBtnLay  PROMPT "LayOut"     SIZE 60, 014 OF oDlgOpc ACTION (Processa({|| dtLayOut(), bOk}, "Aguarde...","Executando Rotina dtLayOut")) PIXEL
 	ACTIVATE MSDIALOG oDlgOpc CENTERED
 	
 	RestArea(aArea)
@@ -76,7 +77,7 @@ Static Function dtLayOut()
 	
 PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
   
-   aAdd(aParamBox,{1,"Tabela",Space(5),"@!","","","",6,.T.})
+   aAdd(aParamBox,{1,"Tabela",Space(5),"@!","","SX2PAD","",6,.T.})
     If ParamBox(aParamBox,"Gerador de LayOut",,,,,,,,"NovosProdutos",.F.,.T.)
         cTabela := Alltrim(MV_PAR01)
 	EndIf
@@ -122,26 +123,39 @@ Static Function dtSelCamp()
 	//Local lOk		:= .F.
 	//Local bOk		:= { || lOk := .T., oDlg:End() }
 	//Local bCancel 	:= { || oDlg:End()}	
-	Local oOk      	:= LoadBitmap( GetResources(), "LBOK")
-	Local oNo      	:= LoadBitmap( GetResources(), "LBNO")	
-	Local oBtn4, oBtn5, oDlg
+	//Local oOk      	:= LoadBitmap( GetResources(), "LBOK")
+	//Local oNo      	:= LoadBitmap( GetResources(), "LBNO")	
+	Local nSX3 := 1
+	Local nLay := 1
+	Local oBtn1, oBtn2, oDlg
 	Local oFont := TFont():New('Courier new',,-18,.T.)
 	Private oSX3, oLay		
 
-	DEFINE MsDialog oDlg Title "Selecione os Campos" From 000,000 To 220,500 Of oMainWnd Style 128
+	DEFINE MsDialog oDlg Title "Selecione os Campos" From 000,000 To 200,250 PIXEL //Of oMainWnd Style 128
 	oDlg:lEscClose := .F.
 		
-	@ 116,008 ListBox oSX3 Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
-	@ 116,196 ListBox oLayout Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
-	
+	//@ 116,008 ListBox oSX3 Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
+	@ 001,008 ListBox oSX3 Fields Header "Campos" ColSizes 30,50 Size 124,112 Of oDlg Pixel
+	//@ 116,008 ListBox oSX3 Var cVarQ ITEMS aCampoSX3 SIZE 124,112 Of oDlg Pixel
+	//@ 116,196 ListBox oLay Var cVarQ ITEMS aCampoLay Size 124,112 Of oDlg Pixel
+	//@ 116,196 ListBox oLay Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
+	oSX3 := TListBox ():New(006, 008,{|u|if(Pcount()>0,nSX3:=u,nSX3)},aCampoSX3,124, 112,,oDlg,,,,.T.)
+    oLay := TListBox ():New(006, 130,{|u|if(Pcount()>0,nLay:=u,nLay)},aCampoLay,124, 112,,oDlg,,,,.T.)
+
 	oSX3:SetArray(aCampoSX3)
+
+    //oSX3:bLine 	:= {|| aDados[nAt]}
 		
-	oSX3:bLine 	:= {|| {/*iif*/(aCampoSX3[oSX3:nAt,01],oOk,oNo)/*,aCampoSX3[oSX3:nAt,02],aCampoSX3[oSX3:nAt,03]*/} }
+	//oSX3:bLine 	:= {|| {/*iif*/(aCampoSX3[oSX3:nAt,01],oOk,oNo)/*,aCampoSX3[oSX3:nAt,02],aCampoSX3[oSX3:nAt,03]*/} }
+	//oSX3:bLine 	:= {|| {(aCampoSX3[oSX3:nAt,01],oOk,oNo),aCampoSX3[oSX3:nAt,02],aCampoSX3[oSX3:nAt,03]} }
+	//oSX3:bChange 	:= {|| cItem := aCampoSX3[nAt,02],aCampoSX3[oSX3:nAt,03]} }
 
 	//oResp:bLDblClick:= { || aCampos[oResp:nAt,1] := !aCampos[oResp:nAt,1] }
 
-	@ 152/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn4 PROMPT ">>>" SIZE 041, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
-	@ 176/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn5 PROMPT "<<<" SIZE 041, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
+	//@ 152/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn4 PROMPT ">>>" SIZE 041, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
+	@ 052,125 BUTTON oBtn1 PROMPT ">>>" SIZE 041, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
+	@ 076,125 BUTTON oBtn2 PROMPT "<<<" SIZE 041, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
+	//@ 176/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn5 PROMPT "<<<" SIZE 041, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
     
     oSay1:= TSay():New( 100,196,{||"Campos do Layout:"},oDlg,,oFont,.F.,.F.,.F.,.T.,CLR_BLACK,CLR_WHITE,100,012)
 	
