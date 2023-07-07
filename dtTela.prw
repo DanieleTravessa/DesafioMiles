@@ -66,11 +66,11 @@ Static Function dtLayOut()
 //===================================================================================================================================================
 		
 	Local aArea 		:= GetArea()	
-	Local aObrigatorio	:= {}
-    Local cAliasTp		:= GetNextAlias()
-	Local cCampo		:= "((cAliasTp)->X3_CAMPO)"
+	//Local cAliasTp		:= GetNextAlias()
+	//Local cCampo		:= "((cAliasTp)->X3_CAMPO)"
 	Local i := 0
 	Local cTabela   := ""
+	Private aObrigatorio := {}
 	Private aCampoSX3 := {}
 	Private aCampoLay := {}
 	Private aParamBox := {}
@@ -120,45 +120,29 @@ Return
 Static Function dtSelCamp()
 //===================================================================================================================================================
 			
-	//Local lOk		:= .F.
-	//Local bOk		:= { || lOk := .T., oDlg:End() }
-	//Local bCancel 	:= { || oDlg:End()}	
-	//Local oOk      	:= LoadBitmap( GetResources(), "LBOK")
-	//Local oNo      	:= LoadBitmap( GetResources(), "LBNO")	
 	Local nSX3 := 1
 	Local nLay := 1
-	Local oBtn1, oBtn2, oDlg
+	Local oBtnAdd, oBtnBac, oDlg
 	Local oFont := TFont():New('Courier new',,-18,.T.)
-	Private oSX3, oLay		
+	Private oSX3, oLay
+	Private aCampoLay		
 
-	DEFINE MsDialog oDlg Title "Selecione os Campos" From 000,000 To 300,500 PIXEL //Of oMainWnd Style 128
+	DEFINE MsDialog oDlg Title "Selecione os Campos" From 000,000 To 300,450 PIXEL //Of oMainWnd Style 128
 	oDlg:lEscClose := .F.
 		
-	//@ 116,008 ListBox oSX3 Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
-	//@ 001,008 ListBox oSX3 Fields Header "Campos" /*ColSizes 30,50*/ Size 084,010 Of oDlg Pixel
-	//@ 116,008 ListBox oSX3 Var cVarQ ITEMS aCampoSX3 SIZE 124,112 Of oDlg Pixel
-	//@ 116,196 ListBox oLay Var cVarQ ITEMS aCampoLay Size 124,112 Of oDlg Pixel
-	//@ 116,196 ListBox oLay Var cVarQ Fields Header "Obrig.","Campo","Título" ColSizes 30,50,300 Size 124,112 Of oDlg Pixel
 	oSX3 := TListBox ():New(012, 008,{|u|if(Pcount()>0,nSX3:=u,nSX3)},aCampoSX3,084,112,,oDlg,,,,.T.)
     oLay := TListBox ():New(012, 130,{|u|if(Pcount()>0,nLay:=u,nLay)},aCampoLay,084,112,,oDlg,,,,.T.)
 
 	oSX3:SetArray(aCampoSX3)
 
-    //oSX3:bLine 	:= {|| aDados[nAt]}
-		
-	//oSX3:bLine 	:= {|| {/*iif*/(aCampoSX3[oSX3:nAt,01],oOk,oNo)/*,aCampoSX3[oSX3:nAt,02],aCampoSX3[oSX3:nAt,03]*/} }
-	//oSX3:bLine 	:= {|| {(aCampoSX3[oSX3:nAt,01],oOk,oNo),aCampoSX3[oSX3:nAt,02],aCampoSX3[oSX3:nAt,03]} }
-	//oSX3:bChange 	:= {|| cItem := aCampoSX3[nAt,02],aCampoSX3[oSX3:nAt,03]} }
-
-	//oResp:bLDblClick:= { || aCampos[oResp:nAt,1] := !aCampos[oResp:nAt,1] }
-
-	//@ 152/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn4 PROMPT ">>>" SIZE 041, 012 OF oDlg ACTION ({|| dtAdd(aCampoSX3[oSX3:nAt])}) PIXEL
-	@ 052,95 BUTTON oBtn1 PROMPT ">>>" SIZE 031, 012 OF oDlg ACTION dtAdd(aCampoSX3[oSX3:nAt]) PIXEL
-	@ 076,95 BUTTON oBtn2 PROMPT "<<<" SIZE 031, 012 OF oDlg ACTION dtBack(aCampoLay[oLay:nAt]) PIXEL
-	//@ 176/*(nAltPosI)-20*/,144/* (nLarPosI)-(64*2)*/  BUTTON oBtn5 PROMPT "<<<" SIZE 041, 012 OF oDlg ACTION ({|| dtBack(aCampoLay[oLay:nAt])}) PIXEL
+  	@ 052,95 BUTTON oBtnAdd PROMPT ">>>" SIZE 031, 012 OF oDlg ACTION dtAdd(aCampoSX3[oSX3:nAt]) PIXEL
+	@ 076,95 BUTTON oBtnBac PROMPT "<<<" SIZE 031, 012 OF oDlg ACTION dtBack(aCampoLay[oLay:nAt]) PIXEL
     
     oSay1:= TSay():New( 001,039,{||"Campos do Layout:"},oDlg,,oFont,.F.,.F.,.F.,.T.,CLR_BLACK,CLR_WHITE,100,012)
-	
+
+	@ 130, 148  BUTTON oBtnSair PROMPT "Sair"       	  SIZE 60, 014 OF oDlg ACTION (oDlg:End()) PIXEL
+	@ 130, 080  BUTTON oBtnImp  PROMPT "Voltar ao Menu"   SIZE 60, 014 OF oDlg ACTION (Processa({|| u_dtTela(), bOk}, "Aguarde...","Executando Rotina dtImporta")) PIXEL
+	@ 130, 012  BUTTON oBtnLay  PROMPT "Gerar LayOut"     SIZE 60, 014 OF oDlg ACTION (Processa({|| dtGeraLay(), bOk}, "Aguarde...","Executando Rotina dtGeraLay")) PIXEL
 	Activate MsDialog oDlg Centered //On Init EnchoiceBar(oDlg,bOk,bCancel,,@aButtons)
 	
 Return .T.
@@ -189,7 +173,6 @@ Return
 */
 Static Function dtBack(cItem)
 //===================================================================================================================================================
-
      oSX3:Add( cItem, 0 )
      oSX3:Refresh()
 
@@ -197,7 +180,121 @@ Static Function dtBack(cItem)
      oLay:Refresh()
 
 Return	
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+//=========================================================================SB==========================================================================
+/*/{Protheus.doc} dtGeraLay
+	(long_description)
+	@type  Static Function
+	@author C2D
+	@since 28/06/2023
+*/
+Static Function dtGeraLay()
+//===================================================================================================================================================
+                   
+    //Local cAlias := GeraConsul() 
+	
+	Local n  
+    Private cDiretorio := 'C:\Excel\'
+    Private cArquivo   := 'FwExcelSB1.xml'
+    Private cCaminho   := cDiretorio + cArquivo
+    Private oExcel
+      
+    //Criando o objeto que irá gerar o conteúdo do Excel
+    oExcel := FWMSExcel():New()
+                    
+    oExcel:AddworkSheet("Produtos")                
+    oExcel:AddTable("Produtos","Campos dos Produtos")
+    
+    For n := 1 to Len(aObrigatorio) 
+    oExcel:AddColumn("Produtos","Dados dos Produtos",aObrigatorio[n], 1, 1)
+    Next
 
+    For n := 1 to Len(aCampoLay)
+    oExcel:AddColumn("Produtos","Dados dos Produtos",aCampoLay[n], 1, 1)
+    Next
+
+    /*oExcel:AddColumn("Produtos","Dados dos Produtos","Tipo",      2, 1)
+    oExcel:AddColumn("Produtos","Dados dos Produtos","Unidade Medida", 1, 1)
+    oExcel:AddColumn("Produtos","Dados dos Produtos","Preço de Venda", 1, 1)*/
+
+    //ImpDados(cAlias)
+    GeraPlanil()
+
+Return
+/*
+Static Function ImpDados(cAlias)
+       
+    Local cCodigo, cDesc, cTipo, cUM, cPreVenda
+    
+            
+    DbSelectArea(cAlias) 
+    (cAlias)->(DbGoTop())      
+
+    While !((cAlias)->(EoF()))
+       
+        cCodigo   := (cAlias)->(B1_COD)
+        cDesc     := (cAlias)->(B1_DESC)
+        cTipo     := (cAlias)->(B1_TIPO)
+        cUM       := (cAlias)->(B1_UM)
+        cPreVenda := (cAlias)->(B1_PRV1)
+        
+
+        If D_E_L_E_T_ <> " "
+            oExcel:SetCelFrColor('#FF0000')            
+        EndIf
+
+        oExcel:AddRow("Produtos","Dados dos Produtos",{cCodigo, cDesc, cTipo, cUM, 'R$' + STR(cPreVenda,,2)})
+
+        (cAlias)->(DbSkip())
+    EndDo
+      
+    (cAlias)->(DbCloseArea())
+   
+Return
+*/
+Static Function GeraPlanil()
+    //Ativando o arquivo e gerando o xml
+    oExcel:Activate()
+    
+    oExcel:GetXMLFile(cCaminho)
+    
+    If ApOleClient('MsExcel')
+        oExcel := MsExcel():New()
+        oExcel:WorkBooks:Open(cCaminho)
+        oExcel:SetVisible(.T.)
+        oExcel:Destroy()
+    Else        
+        If ExistDir("C:\Program Files (x86)\LibreOffice 5")
+                WaitRun('C:\Program Files (x86)\LibreOffice 5\program\scalc.exe "'+cArquivo+'"', 1)       
+        Else
+                ShellExecute("Open", cArquivo, "", "C:\", 1)
+        EndIf
+    EndIf
+    
+    FwAlertSuccess('Arquivo Gerado!','Arquivo Gerado com Sucesso!!')     
+  
+    oExcel:DeActivate()
+
+Return  
+/*
+Static Function GeraConsul()
+
+    Local aArea := GetArea()
+    Local cQuery := ''
+    Local cAlias := GetNextAlias()
+    
+    cQuery += ' SELECT B1_COD, B1_DESC, B1_TIPO, B1_UM, B1_PRV1 ' + CRLF
+    cQuery += ' FROM ' + RetSqlName('SB1') + ' SB1 '    
+
+    TCQUERY cQuery ALIAS (cAlias) NEW 
+
+    (cAlias)->(DbGoTop())
+
+    RestArea(aArea)
+
+Return cAlias*/
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //	IMPORTAÇÃO DO ARQUIVO
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
