@@ -27,7 +27,7 @@ User Function dtTela()
 	Local oBtnSair
 	Local oBtnImp
 	Local oBtnLay
-	Local bOk		:= { || lOk := .T., oDlg:End() }
+	Local bOk		:= { || lOk := .T., oDlgOpc:End() }
 
 	Private aIteTok := {";",","}
 	Private oSayArq, oGetArq, cGetArq := Space(99)
@@ -124,8 +124,9 @@ Static Function dtSelCamp()
 	Local nLay := 1
 	Local oBtnAdd, oBtnBac, oDlg
 	Local oFont := TFont():New('Courier new',,-18,.T.)
+	Local bOk		:= { || lOk := .T., oDlg:End() }
 	Private oSX3, oLay
-	Private aCampoLay		
+	Private aCampoLay := {}		
 
 	DEFINE MsDialog oDlg Title "Selecione os Campos" From 000,000 To 300,450 PIXEL //Of oMainWnd Style 128
 	oDlg:lEscClose := .F.
@@ -142,7 +143,7 @@ Static Function dtSelCamp()
 
 	@ 130, 148  BUTTON oBtnSair PROMPT "Sair"       	  SIZE 60, 014 OF oDlg ACTION (oDlg:End()) PIXEL
 	@ 130, 080  BUTTON oBtnImp  PROMPT "Voltar ao Menu"   SIZE 60, 014 OF oDlg ACTION (Processa({|| u_dtTela(), bOk}, "Aguarde...","Executando Rotina dtImporta")) PIXEL
-	@ 130, 012  BUTTON oBtnLay  PROMPT "Gerar LayOut"     SIZE 60, 014 OF oDlg ACTION (Processa({|| dtGeraLay(aObrigatorio, aCampoSX3), bOk}, "Aguarde...","Executando Rotina dtGeraLay")) PIXEL
+	@ 130, 012  BUTTON oBtnLay  PROMPT "Gerar LayOut"     SIZE 60, 014 OF oDlg ACTION (Processa({|| dtGeraLay(aObrigatorio), bOk}, "Aguarde...","Executando Rotina dtGeraLay")) PIXEL
 	Activate MsDialog oDlg Centered //On Init EnchoiceBar(oDlg,bOk,bCancel,,@aButtons)
 	
 Return .T.
@@ -188,28 +189,31 @@ Return
 	@author C2D
 	@since 28/06/2023
 */
-Static Function dtGeraLay(aObrigatorio, aCampoSX3)
+Static Function dtGeraLay(aObrigatorio)
 //===================================================================================================================================================
               
-    Local n  
+    Local n
+	Local aExcel := aClone(aObrigatorio)
     Private cDiretorio := 'C:\Excel\'
     Private cArquivo   := 'FwExcelSB1.xml'
     Private cCaminho   := cDiretorio + cArquivo
     Private oExcel
-      
+
+	For n := 1 to Len(aCampoLay) 
+    	aAdd(aExcel, aCampoLay[n])
+    Next
+
     //Criando o objeto que irá gerar o conteúdo do Excel
     oExcel := FWMSExcel():New()
                     
     oExcel:AddworkSheet("Produtos")                
     oExcel:AddTable("Produtos","Campos dos Produtos")
     
-    For n := 1 to Len(aObrigatorio) 
-    oExcel:AddColumn("Produtos","Campos dos Produtos",aObrigatorio[n], 1, 1)
-    Next
+  
 
-  /* For n := 1 to Len(aCampoLay)
-    oExcel:AddColumn("Produtos","Campos dos Produtos",aCampoLay[n], 1, 1)
-    Next   */
+    For n := 1 to Len(aExcel)
+    	oExcel:AddColumn("Produtos","Campos dos Produtos",aExcel[n], 1, 1)
+    Next   
     
     GeraPlanil()
 
